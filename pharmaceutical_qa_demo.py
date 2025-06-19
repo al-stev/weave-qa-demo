@@ -205,12 +205,6 @@ class ModelProvider:
         if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
             try:
                 self.client = openai.OpenAI()
-                # Test with a minimal request
-                response = self.client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": "Hi"}],
-                    max_tokens=1
-                )
                 self.provider = "openai"
                 print("✅ Using OpenAI provider")
                 return
@@ -221,12 +215,6 @@ class ModelProvider:
         if ANTHROPIC_AVAILABLE and os.getenv("ANTHROPIC_API_KEY"):
             try:
                 self.client = anthropic.Anthropic()
-                # Test with a minimal request
-                response = self.client.messages.create(
-                    model="claude-3-haiku-20240307",
-                    max_tokens=1,
-                    messages=[{"role": "user", "content": "Hi"}]
-                )
                 self.provider = "anthropic"
                 print("✅ Using Anthropic provider")
                 return
@@ -271,25 +259,69 @@ model_provider = None
 # SETUP: Initialize and Validate Environment
 # =============================================================================
 
+def create_model_variants():
+    """Create multiple model variants for leaderboard comparison."""
+    global fda_investigator, fda_investigator_anthropic, fda_investigator_baseline
+    
+    # Create shared prompt for all variants
+    template_structure = PharmaceuticalQAModel._load_template_structure_static("templates/qa_investigation.jinja")
+    prompt = weave.StringPrompt(template_structure)
+    weave.publish(prompt, name="fda_contamination_investigation_v1")
+    
+    # Variant 1: OpenAI-based FDA QA Investigator
+    fda_investigator = PharmaceuticalQAModel(
+        name="FDA QA Investigator (OpenAI)",
+        model_description="OpenAI GPT-4o powered pharmaceutical QA investigator specializing in FDA 21 CFR Part 211 contamination protocols",
+        regulatory_framework="FDA 21 CFR Part 211",
+        specialization_area="Contamination Investigation",
+        compliance_level="fda_advanced",
+        regulatory_approval_status="development",
+        template_path="templates/qa_investigation.jinja",
+        prompt=prompt
+    )
+    print("✅ FDA QA Investigator (OpenAI) ready")
+    
+    # Variant 2: Anthropic-based FDA QA Investigator 
+    # This should create a new model version due to different provider behavior
+    fda_investigator_anthropic = PharmaceuticalQAModel(
+        name="FDA QA Investigator (Anthropic)",
+        model_description="Anthropic Claude powered pharmaceutical QA investigator specializing in FDA 21 CFR Part 211 contamination protocols",
+        regulatory_framework="FDA 21 CFR Part 211", 
+        specialization_area="Contamination Investigation",
+        compliance_level="fda_advanced",
+        regulatory_approval_status="development",
+        template_path="templates/qa_investigation.jinja",
+        prompt=prompt
+    )
+    print("✅ FDA QA Investigator (Anthropic) ready")
+    
+    # Variant 3: Baseline simplified model
+    baseline_prompt = weave.StringPrompt("You are a quality assurance investigator. Answer the following question about pharmaceutical contamination: {question}")
+    weave.publish(baseline_prompt, name="basic_qa_prompt_v1")
+    
+    fda_investigator_baseline = PharmaceuticalQAModel(
+        name="Basic QA Investigator (Baseline)",
+        model_description="Simplified baseline QA investigator without specialized pharmaceutical training",
+        regulatory_framework="Generic GMP",
+        specialization_area="General Investigation", 
+        compliance_level="gmp_basic",
+        regulatory_approval_status="development",
+        template_path="templates/qa_investigation.jinja",  # Still uses same template path
+        prompt=baseline_prompt
+    )
+    print("✅ Basic QA Investigator (Baseline) ready")
+
 def initialize_model_provider():
     """Initialize the model provider and test connection."""
-    global model_provider, fda_investigator
+    global model_provider
     print("🔧 Initializing model provider...")
     
     try:
         model_provider = ModelProvider()
         print(f"✅ {model_provider} ready")
         
-        # Initialize the FDA investigator model with StringPrompt
-        template_structure = PharmaceuticalQAModel._load_template_structure_static("templates/qa_investigation.jinja")
-        prompt = weave.StringPrompt(template_structure)
-        
-        fda_investigator = PharmaceuticalQAModel(
-            framework_name="FDA_QA",
-            template_path="templates/qa_investigation.jinja",
-            prompt=prompt
-        )
-        print("✅ FDA QA Investigator model ready")
+        # Create all model variants for comparison
+        create_model_variants()
         
         return True
     except Exception as e:
@@ -315,8 +347,13 @@ def initialize_weave():
 # Clean demo uses weave.Model - no need for JinjaPrompt wrapper
 
 class PharmaceuticalQAModel(weave.Model):
-    """Clean weave.Model for pharmaceutical QA investigation."""
-    framework_name: str
+    """Enhanced weave.Model for pharmaceutical QA investigation with rich metadata."""
+    name: str
+    model_description: str
+    regulatory_framework: str
+    specialization_area: str
+    compliance_level: str
+    regulatory_approval_status: str
     template_path: str
     prompt: weave.StringPrompt
     
@@ -387,15 +424,33 @@ class PharmaceuticalQAModel(weave.Model):
             # Render actual content for API call (with variables filled in)
             actual_content = self._render_with_variables(question)
             
-            response = model_provider.chat_completion(actual_content, max_tokens=400, temperature=0.7)
-            
-            return {"output": response}
+            # For Anthropic variants, we'll create a temporary Anthropic provider
+            if "Anthropic" in self.name:
+                # Use Anthropic for this specific model variant
+                if not ANTHROPIC_AVAILABLE or not os.getenv("ANTHROPIC_API_KEY"):
+                    return {"output": "Anthropic API not available - check ANTHROPIC_API_KEY"}
+                
+                anthropic_client = anthropic.Anthropic()
+                response = anthropic_client.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    max_tokens=400,
+                    temperature=0.7,
+                    messages=[{"role": "user", "content": actual_content}]
+                )
+                return {"output": response.content[0].text}
+            else:
+                # Use the global model provider (OpenAI or fallback)
+                response = model_provider.chat_completion(actual_content, max_tokens=400, temperature=0.7)
+                return {"output": response}
+                
         except Exception as e:
             print(f"❌ Predict method error: {e}")
             return {"output": f"Error generating response: {e}"}
 
-# Single model instance for clean demo
-fda_investigator = None  # Will be initialized after model_provider is ready
+# Model instances for leaderboard comparison
+fda_investigator = None  # OpenAI-based model
+fda_investigator_anthropic = None  # Anthropic-based model
+fda_investigator_baseline = None  # Simplified baseline model
 
 
 @weave.op()
@@ -561,6 +616,9 @@ def act1_template_versioning():
     # Update the existing model's prompt to trigger new prompt version (Weave auto-detects)
     enhanced_template_structure = PharmaceuticalQAModel._load_template_structure_static("templates/qa_investigation.jinja")
     enhanced_prompt = weave.StringPrompt(enhanced_template_structure)
+    
+    # Publish the enhanced prompt with a meaningful name
+    weave.publish(enhanced_prompt, name="fda_contamination_investigation_enhanced_v2")
     
     # Update the model's prompt attribute - Weave will detect this as a new prompt version
     fda_investigator.prompt = enhanced_prompt
