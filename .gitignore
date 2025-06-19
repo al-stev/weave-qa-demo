@@ -77,6 +77,9 @@ dmypy.json
 temp/
 tmp/
 
+#wandb
+wandb/
+
 # Weave cache (if any)
 .weave/
 
