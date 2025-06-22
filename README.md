@@ -1,4 +1,4 @@
-# QA Demo – Weave Evaluation Capabilities
+# Weave Evals Traces – QA Demo
 
 A comprehensive demonstration of Weave's evaluation capabilities through pharmaceutical quality assurance scenarios. This demo showcases prompt versioning, evaluation logging, and rigorous evaluation workflows.
 
@@ -14,7 +14,7 @@ This demo illustrates three key Weave capabilities:
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.9+
 - OpenAI API key or Anthropic API key
 - W&B account (for Weave projects)
 
@@ -28,9 +28,11 @@ This demo illustrates three key Weave capabilities:
 
 2. **Install dependencies:**
    ```bash
-   pip install -r requirements.txt
-   # or using uv:
-   uv pip install -r requirements.txt
+   # Using uv (recommended):
+   uv sync
+   
+   # Or using pip with the pyproject.toml:
+   pip install -e .
    ```
 
 3. **Set up environment variables:**
@@ -50,14 +52,14 @@ The demo supports three execution modes:
 
 ```bash
 # Part 1 only: Prompt versioning demonstration
-python -m qa_demo.main --mode prompt_versioning
+python main.py --mode prompt_versioning
 
 # Part 1 + Part 2: Evaluation Logger workflow (DEFAULT)
-python -m qa_demo.main --mode eval_logger
-python -m qa_demo.main  # Same as above (default mode)
+python main.py --mode eval_logger
+python main.py  # Same as above (default mode)
 
 # Part 1 + Part 3: Comprehensive evaluation workflow  
-python -m qa_demo.main --mode evaluation
+python main.py --mode evaluation
 ```
 
 ## 📊 Demo Structure
@@ -88,14 +90,16 @@ python -m qa_demo.main --mode evaluation
 ## 🏗️ Architecture
 
 ```
-qa_demo/
-├── __init__.py                    # Package initialization
+weave-evals-traces/
+├── __init__.py                    # Package initialization  
 ├── main.py                       # CLI dispatcher with --mode argument
 ├── part1_prompt_versioning.py    # Part 1 implementation
 ├── part2_evaluation_logger.py    # Part 2 implementation  
 ├── part3_evaluation.py           # Part 3 implementation
 ├── models.py                     # ModelProvider & PharmaceuticalQAModel
-├── leaderboard_support.py        # Scorers and leaderboard utilities
+├── scorers.py                    # Scoring implementations (regulatory, safety, LLM judge)
+├── leaderboard_support.py        # Leaderboard creation utilities
+├── pyproject.toml                # Project configuration and dependencies
 └── templates/
     └── qa_investigation.jinja     # Pharmaceutical QA prompt template
 ```
@@ -110,6 +114,13 @@ All parts use consistent four-metric evaluation:
 4. **LLM Judge** (0-1): LLM-as-a-judge quality assessment
 
 **Note**: Model latency metrics have been removed per requirements.
+
+### Scoring Implementation
+
+The scoring system is split across two files:
+
+- **`scorers.py`**: Contains all scorer implementations including `PharmaceuticalQAScorer`, `ContentSafetyScorer`, and `LLMJudgeScorer`
+- **`leaderboard_support.py`**: Contains leaderboard creation utilities and EvaluationLogger bridge functions
 
 ## 🎓 Key Learning Points
 
@@ -142,7 +153,7 @@ variants["New-Model"] = PharmaceuticalQAModel(
 ```
 
 ### Adding New Scorers
-Create custom scorers in `leaderboard_support.py`:
+Create custom scorers in `scorers.py`:
 
 ```python
 class CustomScorer(weave.Scorer):
@@ -165,7 +176,7 @@ Update the dataset in Part 2 and Part 3 modules to include your scenarios.
 - Check API quota and rate limits
 
 **Import Errors**:
-- Run from project root: `python -m qa_demo.main`
+- Run from project root: `python main.py`
 - Ensure all dependencies are installed
 
 **Weave Project Issues**:
@@ -178,14 +189,12 @@ A successful demo run should show:
 - ✅ Clean Weave UI with no failures or strikethrough operations  
 - ✅ Automatic prompt versioning with 2 versions created
 - ✅ Multi-model evaluation with 4 metrics per model
-- ✅ Leaderboards with 4 columns (no latency column)
+- ✅ Leaderboards with 4 columns
 - ✅ All scorers operational with proper value display
 
 ## 📚 References
 
 - [Weave Documentation](https://weave-docs.wandb.ai/)
-- [Custom Scorers Guide](https://weave-docs.wandb.ai/guides/core-types/scorers)
-- [EvaluationLogger Announcement](https://wandb.ai/wandb_fc/product-announcements-fc/reports/W-B-Weave-EvaluationLogger-A-more-flexible-approach-to-evaluating-AI-applications--VmlldzoxMzE4MzEwNw)
 
 ## 📄 License
 

@@ -2,12 +2,14 @@
 QA Demo – Main CLI Entry Point
 
 Demonstrates Weave's evaluation capabilities through pharmaceutical quality assurance scenarios.
-Supports three modes: prompt versioning, evaluation logger, and comprehensive evaluations.
+Supports four modes: prompt versioning, evaluation logger, comprehensive evaluations, and all combined.
 
 Usage:
     python main.py --mode prompt_versioning  # Part 1 only
     python main.py --mode eval_logger        # Part 1 + Part 2 (default)
     python main.py --mode evaluation         # Part 1 + Part 3
+    python main.py --mode all                # Parts 1 + 2 + 3
+    python main.py --project-name my-project # Custom project name
     python main.py                           # Default: eval_logger
 """
 
@@ -22,12 +24,12 @@ from part3_evaluation import part3_evaluation
 from models import initialize_model_provider
 
 
-def initialize_weave():
+def initialize_weave(project_name="weave-evals-traces"):
     """Initialize Weave and return project URL."""
     entity = os.getenv("WANDB_ENTITY", "wandb_emea")
-    project_name = f"{entity}/weave-qa-demo"
-    weave.init(project_name)
-    project_url = f"https://wandb.ai/{project_name}/weave"
+    full_project_name = f"{entity}/{project_name}"
+    weave.init(full_project_name)
+    project_url = f"https://wandb.ai/{full_project_name}/weave"
     print(f"Weave project URL: {project_url}")
     return project_url
 
@@ -57,15 +59,23 @@ Examples:
   python main.py --mode prompt_versioning    # Part 1: Prompt versioning demo
   python main.py --mode eval_logger          # Part 1+2: EvaluationLogger workflow  
   python main.py --mode evaluation           # Part 1+3: Comprehensive evaluation
+  python main.py --mode all                  # Parts 1+2+3: Complete showcase
+  python main.py --project-name my-demo      # Custom project name
   python main.py                             # Default: eval_logger
         """
     )
     
     parser.add_argument(
         "--mode",
-        choices=["prompt_versioning", "eval_logger", "evaluation"],
+        choices=["prompt_versioning", "eval_logger", "evaluation", "all"],
         default="eval_logger",
         help="Demo mode to run (default: eval_logger)"
+    )
+    
+    parser.add_argument(
+        "--project-name",
+        default="weave-evals-traces",
+        help="Weave project name (default: weave-evals-traces)"
     )
     
     args = parser.parse_args()
@@ -73,10 +83,11 @@ Examples:
     print("QA Demo – Weave Evaluation Capabilities")
     print("=" * 60)
     print(f"Mode: {args.mode}")
+    print(f"Project: {args.project_name}")
     
     # Setup environment and initialize Weave
     setup_environment()
-    project_url = initialize_weave()
+    project_url = initialize_weave(args.project_name)
     
     # Initialize model provider
     if not initialize_model_provider():
@@ -117,6 +128,24 @@ Expected Results:
             print(f"\nRunning Part 1 + Part 3 – Prompt Versioning + Comprehensive Evaluations")
             part1_prompt_versioning()
             evaluation_results, evaluation_objects = part3_evaluation()
+            
+        elif args.mode == "all":
+            # Run all three parts
+            print(f"\nRunning All Parts – Complete Weave Evaluation Showcase")
+            print("\n" + "="*60)
+            print("PART 1 – PROMPT VERSIONING")
+            print("="*60)
+            part1_prompt_versioning()
+            
+            print("\n" + "="*60)
+            print("PART 2 – EVALUATION LOGGER")
+            print("="*60)
+            part2_evaluation_logger()
+            
+            print("\n" + "="*60)
+            print("PART 3 – COMPREHENSIVE EVALUATIONS")
+            print("="*60)
+            evaluation_results, evaluation_objects = part3_evaluation()
         
         # Demo complete
         print("\n" + "="*60)
@@ -135,6 +164,13 @@ Expected Results:
             print(" ✓ Comprehensive Evaluation: Systematic multi-model comparison")
             print(" ✓ Four Metrics: Same as Part 2 for apples-to-apples comparison")
             print(" ✓ Standard Leaderboard: Rigorous evaluation workflow")
+        elif args.mode == "all":
+            print(" ✓ Prompt Versioning: Weave StringPrompt automatically tracks structural changes")
+            print(" ✓ Evaluation Logger: Multi-model evaluation with real-time scoring")
+            print(" ✓ Comprehensive Evaluation: Systematic multi-model comparison")
+            print(" ✓ Four Metrics: Complete scoring across all evaluation methods")
+            print(" ✓ Complete Comparison: Both EL and Standard leaderboards")
+            print(" ✓ Full Workflow: End-to-end Weave evaluation capabilities")
         
         print(" ✓ Clean Integration: All operations functional with proper instrumentation")
         print(" ✓ No Latency Metrics: Removed as specified in requirements")
