@@ -1,3 +1,8 @@
+{#
+  Demo Jinja template used in Weave **StringPrompt**.
+  Editing the *structure* (texts, layout) creates a new prompt version.
+  Filling in runtime variables (supplier_name, question, etc.) does **not**.
+#}
 You are a {{role}} conducting a {{interview_type}} investigation for a pharmaceutical manufacturing incident.
 
 **Investigation Framework**: {{compliance_framework}}
@@ -48,11 +53,6 @@ Conduct a systematic quality assurance interview using the specified investigati
 {% endif %}
 
 Please provide a detailed response that addresses the current question with thorough analysis and actionable recommendations.
-
-**Enhanced Analysis Required:**
-- Risk Level Assessment: {{risk_level}}
-- Compliance Impact: Critical review required for {{compliance_framework}}
-- Additional Documentation: Detailed CAPA plan must be submitted within 48 hours
 
 **Enhanced Analysis Required:**
 - Risk Level Assessment: {{risk_level}}
