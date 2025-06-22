@@ -5,10 +5,10 @@ Demonstrates Weave's evaluation capabilities through pharmaceutical quality assu
 Supports three modes: prompt versioning, evaluation logger, and comprehensive evaluations.
 
 Usage:
-    python -m qa_demo.main --mode prompt_versioning  # Part 1 only
-    python -m qa_demo.main --mode eval_logger        # Part 1 + Part 2 (default)
-    python -m qa_demo.main --mode evaluation         # Part 1 + Part 3
-    python -m qa_demo.main                           # Default: eval_logger
+    python main.py --mode prompt_versioning  # Part 1 only
+    python main.py --mode eval_logger        # Part 1 + Part 2 (default)
+    python main.py --mode evaluation         # Part 1 + Part 3
+    python main.py                           # Default: eval_logger
 """
 
 import os
@@ -16,16 +16,16 @@ import argparse
 import weave
 from dotenv import load_dotenv
 
-from .part1_prompt_versioning import part1_prompt_versioning
-from .part2_evaluation_logger import part2_evaluation_logger  
-from .part3_evaluation import part3_evaluation
-from .models import initialize_model_provider
+from part1_prompt_versioning import part1_prompt_versioning
+from part2_evaluation_logger import part2_evaluation_logger  
+from part3_evaluation import part3_evaluation
+from models import initialize_model_provider
 
 
 def initialize_weave():
     """Initialize Weave and return project URL."""
     entity = os.getenv("WANDB_ENTITY", "wandb_emea")
-    project_name = f"{entity}/qa-demo"
+    project_name = f"{entity}/qa-demo123"
     weave.init(project_name)
     project_url = f"https://wandb.ai/{project_name}/weave"
     print(f"Weave project URL: {project_url}")
@@ -54,10 +54,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python -m qa_demo.main --mode prompt_versioning    # Part 1: Prompt versioning demo
-  python -m qa_demo.main --mode eval_logger          # Part 1+2: EvaluationLogger workflow  
-  python -m qa_demo.main --mode evaluation           # Part 1+3: Comprehensive evaluation
-  python -m qa_demo.main                             # Default: eval_logger
+  python main.py --mode prompt_versioning    # Part 1: Prompt versioning demo
+  python main.py --mode eval_logger          # Part 1+2: EvaluationLogger workflow  
+  python main.py --mode evaluation           # Part 1+3: Comprehensive evaluation
+  python main.py                             # Default: eval_logger
         """
     )
     

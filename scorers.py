@@ -28,7 +28,7 @@ class LLMJudgeScorer(weave.Scorer):
     @weave.op()
     def score(self, input: str, output: str, target: str) -> dict:
         """Score response using LLM judgment."""
-        from .models import model_provider
+        from models import model_provider
         
         judge_prompt = f"""Rate this pharmaceutical QA response from 1-10:
 

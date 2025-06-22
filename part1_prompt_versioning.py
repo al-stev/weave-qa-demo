@@ -12,8 +12,8 @@ of the same prompt with different methodologies.
 import weave
 from pathlib import Path
 import jinja2
-from .models import PharmaceuticalQAModel
-from .scorers import simple_quality_scorer
+from models import PharmaceuticalQAModel
+from scorers import simple_quality_scorer
 
 
 def part1_prompt_versioning():

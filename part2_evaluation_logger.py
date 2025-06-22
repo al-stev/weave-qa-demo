@@ -15,13 +15,13 @@ import time
 from weave import EvaluationLogger
 from weave.scorers import EmbeddingSimilarityScorer
 
-from .models import create_model_variants, initialize_model_provider
-from .scorers import (
+from models import create_model_variants, initialize_model_provider
+from scorers import (
     PharmaceuticalQAScorer, 
     ContentSafetyScorer, 
     LLMJudgeScorer
 )
-from .leaderboard_support import (
+from leaderboard_support import (
     add_leaderboard_support,
     create_el_leaderboard
 )

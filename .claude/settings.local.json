@@ -6,7 +6,8 @@
       "WebFetch(domain:colab.research.google.com)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

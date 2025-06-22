@@ -12,13 +12,13 @@ import weave
 import asyncio
 from weave.scorers import EmbeddingSimilarityScorer
 
-from .models import create_model_variants, initialize_model_provider
-from .scorers import (
+from models import create_model_variants, initialize_model_provider
+from scorers import (
     PharmaceuticalQAScorer,
     ContentSafetyScorer, 
     LLMJudgeScorer
 )
-from .leaderboard_support import (
+from leaderboard_support import (
     create_standard_leaderboard
 )
 
