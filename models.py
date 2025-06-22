@@ -208,7 +208,7 @@ def create_model_variants():
     """Create the four model variants used across Part 2 and Part 3."""
     
     # Enhanced prompt structure (with 5 Whys methodology)
-    enhanced_template_structure = PharmaceuticalQAModel._load_template_structure_static("qa_demo/templates/qa_investigation.jinja")
+    enhanced_template_structure = PharmaceuticalQAModel._load_template_structure_static("templates/qa_investigation.jinja")
     enhanced_prompt = weave.StringPrompt(enhanced_template_structure)
     weave.publish(enhanced_prompt, name="qa_contamination_investigation")
     
@@ -226,7 +226,7 @@ def create_model_variants():
             specialization_area="Contamination Investigation", 
             compliance_level="fda_basic",
             regulatory_approval_status="development",
-            template_path="qa_demo/templates/qa_investigation.jinja",
+            template_path="templates/qa_investigation.jinja",
             prompt=basic_prompt
         ),
         "OpenAI_Enhanced": PharmaceuticalQAModel(
@@ -236,7 +236,7 @@ def create_model_variants():
             specialization_area="Contamination Investigation",
             compliance_level="fda_advanced", 
             regulatory_approval_status="development",
-            template_path="qa_demo/templates/qa_investigation.jinja",
+            template_path="templates/qa_investigation.jinja",
             prompt=enhanced_prompt
         ),
         "Anthropic_Basic": PharmaceuticalQAModel(
@@ -246,7 +246,7 @@ def create_model_variants():
             specialization_area="Contamination Investigation",
             compliance_level="fda_basic",
             regulatory_approval_status="development", 
-            template_path="qa_demo/templates/qa_investigation.jinja",
+            template_path="templates/qa_investigation.jinja",
             prompt=basic_prompt
         ),
         "Anthropic_Enhanced": PharmaceuticalQAModel(
@@ -256,7 +256,7 @@ def create_model_variants():
             specialization_area="Contamination Investigation",
             compliance_level="fda_advanced",
             regulatory_approval_status="development",
-            template_path="qa_demo/templates/qa_investigation.jinja", 
+            template_path="templates/qa_investigation.jinja", 
             prompt=enhanced_prompt
         )
     }

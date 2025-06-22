@@ -25,7 +25,7 @@ from models import initialize_model_provider
 def initialize_weave():
     """Initialize Weave and return project URL."""
     entity = os.getenv("WANDB_ENTITY", "wandb_emea")
-    project_name = f"{entity}/qa-demo123"
+    project_name = f"{entity}/weave-qa-demo"
     weave.init(project_name)
     project_url = f"https://wandb.ai/{project_name}/weave"
     print(f"Weave project URL: {project_url}")

@@ -56,7 +56,7 @@ def part1_prompt_versioning():
         return template.render(**placeholder_vars)
     
     # Create and publish weaker prompt version
-    weaker_template_structure = _load_template_structure_weaker("qa_demo/templates/qa_investigation.jinja")
+    weaker_template_structure = _load_template_structure_weaker("templates/qa_investigation.jinja")
     weaker_prompt = weave.StringPrompt(weaker_template_structure)
     weave.publish(weaker_prompt, name="qa_contamination_investigation")
     
@@ -68,7 +68,7 @@ def part1_prompt_versioning():
         specialization_area="Contamination Investigation",
         compliance_level="fda_basic",
         regulatory_approval_status="development",
-        template_path="qa_demo/templates/qa_investigation.jinja",
+        template_path="templates/qa_investigation.jinja",
         prompt=weaker_prompt
     )
     
@@ -86,7 +86,7 @@ def part1_prompt_versioning():
     print("   Creating improved prompt with structured methodology")
     
     # Create enhanced prompt with 5 Whys methodology (using original template structure)
-    enhanced_template_structure = PharmaceuticalQAModel._load_template_structure_static("qa_demo/templates/qa_investigation.jinja")
+    enhanced_template_structure = PharmaceuticalQAModel._load_template_structure_static("templates/qa_investigation.jinja")
     enhanced_prompt = weave.StringPrompt(enhanced_template_structure)
     
     # Publish under SAME NAME - Weave will create Version 2 automatically
@@ -101,7 +101,7 @@ def part1_prompt_versioning():
         specialization_area="Contamination Investigation",
         compliance_level="fda_advanced",
         regulatory_approval_status="development",
-        template_path="qa_demo/templates/qa_investigation.jinja",
+        template_path="templates/qa_investigation.jinja",
         prompt=enhanced_prompt
     )
     
