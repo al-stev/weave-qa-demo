@@ -16,10 +16,12 @@ from weave import EvaluationLogger
 from weave.scorers import EmbeddingSimilarityScorer
 
 from .models import create_model_variants, initialize_model_provider
-from .leaderboard_support import (
+from .scorers import (
     PharmaceuticalQAScorer, 
     ContentSafetyScorer, 
-    LLMJudgeScorer,
+    LLMJudgeScorer
+)
+from .leaderboard_support import (
     add_leaderboard_support,
     create_el_leaderboard
 )
@@ -50,18 +52,15 @@ def part2_evaluation_logger():
     qa_dataset = [
         {
             "input": "What was the first indication that contamination had occurred?",
-            "target": "Quality control testing detected unexpected impurities during routine batch analysis.",
-            "expected": "Quality control testing detected unexpected impurities during routine batch analysis."
+            "target": "Quality control testing detected unexpected impurities during routine batch analysis."
         },
         {
             "input": "What was the root cause of the contamination?",
-            "target": "Inadequate environmental monitoring, compromised HEPA filtration, and insufficient personnel training protocols.",
-            "expected": "Inadequate environmental monitoring, compromised HEPA filtration, and insufficient personnel training protocols."
+            "target": "Inadequate environmental monitoring, compromised HEPA filtration, and insufficient personnel training protocols."
         },
         {
             "input": "What preventive measures will prevent recurrence?",
-            "target": "Enhanced facility segregation, updated cleaning validation protocols, and comprehensive staff retraining with competency assessment.",
-            "expected": "Enhanced facility segregation, updated cleaning validation protocols, and comprehensive staff retraining with competency assessment."
+            "target": "Enhanced facility segregation, updated cleaning validation protocols, and comprehensive staff retraining with competency assessment."
         }
     ]
     
@@ -106,7 +105,7 @@ def part2_evaluation_logger():
             # Apply all four scorers and log scalar metrics as specified
             try:
                 # 1. Regulatory compliance - scalar 0-1
-                pharma_scores = pharma_scorer.score(expected=target, output=response)
+                pharma_scores = pharma_scorer.score(target=target, output=response)
                 pred_logger.log_score("regulatory_compliance", pharma_scores.get("regulatory_compliance", 0.7))
                 
                 # 2. Content safety - scalar 0-1
@@ -155,26 +154,27 @@ def part2_evaluation_logger():
     # Add leaderboard support to EvaluationLogger
     add_leaderboard_support()
     
-    # Note: EvaluationLogger → Leaderboard conversion currently supports single model demonstration
-    # This showcases the EL workflow; in practice you'd aggregate multiple EL sessions
-    primary_model_name, primary_el = all_el_sessions[0]
+    # Convert each EL session to evaluation objects
+    evaluation_objects = []
     
     try:
-        # Convert first EL session to leaderboard-compatible evaluation for demonstration
-        el_published = asyncio.run(primary_el.create_leaderboard_evaluation(
-            model=model_variants[primary_model_name], 
-            evaluation_name="EL-qa-demo-evaluation"
-        ))
-        print(f"   EL evaluation published: {el_published.uri()}")
-        print(f"   Note: Demonstrating EL→Evaluation conversion with {primary_model_name}")
+        # After EL loop, iterate over all all_el_sessions
+        for model_name, el_session in all_el_sessions:
+            # Convert each EL session via create_leaderboard_evaluation
+            el_published = asyncio.run(el_session.create_leaderboard_evaluation(
+                evaluation_name=f"EL_eval_{model_name}"
+            ))
+            print(f"   EL evaluation published for {model_name}: {el_published.uri()}")
+            # Append each returned object to evaluation_objects
+            evaluation_objects.append(el_published)
         
-        # Create EL leaderboard - no latency column as specified in playbook
-        el_leaderboard = create_el_leaderboard(el_published)
+        # Create EL leaderboard with all evaluation objects
+        el_leaderboard = create_el_leaderboard(evaluation_objects)
         
         if el_leaderboard:
             print(f"   EL Leaderboard created: {el_leaderboard.uri()}")
             print(f"     Columns: regulatory_compliance, content_safety, semantic_similarity, llm_judge")
-            print(f"     Note: Single-model demonstration; Part 3 shows multi-model comparison")
+            print(f"     Models: {len(evaluation_objects)} model variants")
         else:
             print(f"   EL Leaderboard creation failed")
             

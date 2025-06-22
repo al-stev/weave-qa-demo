@@ -13,10 +13,12 @@ import asyncio
 from weave.scorers import EmbeddingSimilarityScorer
 
 from .models import create_model_variants, initialize_model_provider
-from .leaderboard_support import (
+from .scorers import (
     PharmaceuticalQAScorer,
     ContentSafetyScorer, 
-    LLMJudgeScorer,
+    LLMJudgeScorer
+)
+from .leaderboard_support import (
     create_standard_leaderboard
 )
 
@@ -46,28 +48,23 @@ def part3_evaluation():
     evaluation_dataset = [
         {
             "input": "What was the first indication that contamination occurred?",
-            "target": "Quality control testing detected unexpected impurities during routine batch analysis.",
-            "expected": "Quality control testing detected unexpected impurities during routine batch analysis."
+            "target": "Quality control testing detected unexpected impurities during routine batch analysis."
         },
         {
             "input": "What was the root cause of the contamination?", 
-            "target": "Inadequate environmental monitoring, compromised HEPA filtration, and insufficient personnel training protocols.",
-            "expected": "Inadequate environmental monitoring, compromised HEPA filtration, and insufficient personnel training protocols."
+            "target": "Inadequate environmental monitoring, compromised HEPA filtration, and insufficient personnel training protocols."
         },
         {
             "input": "What CAPA plan will prevent recurrence of cross-contamination?",
-            "target": "Enhanced facility segregation, updated cleaning validation protocols, and comprehensive staff retraining with competency assessment.",
-            "expected": "Enhanced facility segregation, updated cleaning validation protocols, and comprehensive staff retraining with competency assessment."
+            "target": "Enhanced facility segregation, updated cleaning validation protocols, and comprehensive staff retraining with competency assessment."
         },
         {
             "input": "How should we document this investigation for regulatory submission?",
-            "target": "Complete investigation report with timeline, evidence, root cause analysis, CAPA plan, and effectiveness verification.",
-            "expected": "Complete investigation report with timeline, evidence, root cause analysis, CAPA plan, and effectiveness verification."
+            "target": "Complete investigation report with timeline, evidence, root cause analysis, CAPA plan, and effectiveness verification."
         },
         {
             "input": "What immediate containment actions are required?",
-            "target": "Halt production, quarantine affected batches, conduct risk assessment, and notify quality assurance management immediately.",
-            "expected": "Halt production, quarantine affected batches, conduct risk assessment, and notify quality assurance management immediately."
+            "target": "Halt production, quarantine affected batches, conduct risk assessment, and notify quality assurance management immediately."
         }
     ]
     

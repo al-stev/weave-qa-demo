@@ -13,7 +13,7 @@ import weave
 from pathlib import Path
 import jinja2
 from .models import PharmaceuticalQAModel
-from .leaderboard_support import simple_quality_scorer
+from .scorers import simple_quality_scorer
 
 
 def part1_prompt_versioning():
