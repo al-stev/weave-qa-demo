@@ -71,6 +71,12 @@ python main.py --mode evaluation
 - Shows that runtime variable changes don't create new versions
 - Compares quality scores between Generic vs. 5 Whys investigation approaches
 
+#### Template Structure vs Runtime Variables
+Weave's versioning is driven by **template structure**, not runtime variables:
+- **Template structure changes** (e.g., adding/removing methodology sections) → New prompt version
+- **Runtime variable substitutions** (e.g., changing supplier names, dates) → Same prompt version
+- This allows consistent versioning while supporting dynamic content injection
+
 ### Part 2 – Evaluation Logger
 **Learning Objective**: "A more flexible approach to evaluating AI applications" 
 
