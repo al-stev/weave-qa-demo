@@ -32,7 +32,7 @@ env.bak/
 venv.bak/
 
 # Environment variables and secrets
-.env*
+.env
 *.env
 .envrc
 
@@ -84,4 +84,4 @@ wandb/
 .weave/
 
 # Lock files (keep uv.lock for reproducibility)
-# uv.lock - keeping this for dependency reproducibility
+# uv.lock - keeping this for dependency reproducibility.claude/
