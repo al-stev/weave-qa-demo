@@ -81,7 +81,7 @@ def part2_evaluation_logger():
         
         # Create EvaluationLogger session for this model
         el = EvaluationLogger(
-            name=f"EL_QA_Demo_{model_name}",
+            name=f"EL_{model_name}",
             model=model_name, 
             dataset="qa_demo_contamination_dataset"
         )
@@ -162,7 +162,7 @@ def part2_evaluation_logger():
         for model_name, el_session in all_el_sessions:
             # Convert each EL session via create_leaderboard_evaluation
             el_published = asyncio.run(el_session.create_leaderboard_evaluation(
-                evaluation_name=f"EL_eval_{model_name}"
+                evaluation_name=f"replay_EL_{model_name}"
             ))
             print(f"   EL evaluation published for {model_name}: {el_published.uri()}")
             # Append each returned object to evaluation_objects

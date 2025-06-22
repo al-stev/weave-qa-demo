@@ -37,7 +37,7 @@ import asyncio
 # • `EvaluationLogger` (EL) is intentionally schema-flexible: you can log any
 #   metric key at any time.  That freedom breaks the guarantees Leaderboard
 #   needs (stable metric paths across runs).
-# • The official Weave SDK does not (yet) provide a "multi-session EL to
+# • The Weave SDK does not provide a "multi-session EL to
 #   leaderboard" helper.  Hence this bespoke bridge.
 #
 # WHAT DOES IT DO?
@@ -64,7 +64,7 @@ import asyncio
 #   leaderboard elsewhere in the code.
 #
 # IS THIS OFFICIALLY SUPPORTED?
-# • No.  It's a community workaround.  Future versions of Weave may ship a
+# • No.  It's a workaround.  Future versions of Weave may ship a
 #   first-class solution that renders this obsolete—or incompatible.
 #
 # SHOULD YOU USE IT?
@@ -113,21 +113,26 @@ def add_leaderboard_support():
         
         # Generate one lightweight scorer per metric_name that returns the captured score
         scorer_functions = []
+        prediction_scores_list = [prediction_scores[i] for i in sorted(prediction_scores.keys())]
+
         for metric_name in all_metric_names:
-            def make_scorer(metric_name, prediction_scores):
-                # Use concise op names (just the metric key) so leaderboard columns are shorter
+            def make_scorer(metric_name, prediction_scores_seq):
+                # Use concise op names (just the metric key)
                 @weave.op(name=f"{metric_name}", enable_code_capture=False)
                 def _scorer(output, **kwargs):
-                    # Find the prediction index based on the dataset order
-                    # Since we can't easily match back to the specific prediction,
-                    # we'll return the first available score for this metric
-                    for scores in prediction_scores.values():
-                        if metric_name in scores:
-                            return {metric_name: scores[metric_name]}
-                    return {metric_name: 0.0}  # Fallback
+                    # Maintain per-scorer call index to align with dataset row order
+                    if not hasattr(_scorer, "_call_idx"):
+                        _scorer._call_idx = 0  # type: ignore[attr-defined]
+
+                    idx = _scorer._call_idx  # type: ignore[attr-defined]
+                    _scorer._call_idx += 1  # type: ignore[attr-defined]
+
+                    if idx < len(prediction_scores_seq):
+                        return {metric_name: prediction_scores_seq[idx].get(metric_name, 0.0)}
+                    return {metric_name: 0.0}
                 return _scorer
-            
-            scorer_functions.append(make_scorer(metric_name, prediction_scores))
+
+            scorer_functions.append(make_scorer(metric_name, prediction_scores_list))
         
         evaluation = Evaluation(
             name=self.name or "evaluation-from-logger",
@@ -138,22 +143,38 @@ def add_leaderboard_support():
         return evaluation
     
     async def create_leaderboard_evaluation(self, evaluation_name: str | None = None):
-        """Publish Evaluation and run a no-op model so Leaderboard paths materialise."""
+        """Publish Evaluation and run a replay model so Leaderboard paths materialise."""
         evaluation = self.to_evaluation()
         if evaluation_name:
             evaluation.name = evaluation_name
 
-        # ── Unique no-op op per evaluation to create distinct model alias ──
-        safe_name = evaluation.name.replace(" ", "_").replace("-", "_")
+        # ── Build captured outputs so the replay model can surface them during evaluation ──
+        captured_outputs: list[str | None] = []
+        for i, pred in enumerate(self._accumulated_predictions):
+            if pred.predict_call is not None:
+                captured_outputs.append(pred.predict_call.output)
 
-        @weave.op(name=f"noop_{safe_name}", enable_code_capture=False)  # type: ignore[arg-type]
-        def _noop_model(**kwargs):  # noqa: ANN001
-            """Uniquely-named no-op model so each evaluation yields its own row."""
+        # ── Unique replay op per evaluation to create distinct model alias ──
+        safe_name = evaluation.name.replace(" ", "_").replace("-", "_")
+        op_name = safe_name if safe_name.startswith("replay_") else f"replay_{safe_name}"
+
+        @weave.op(name=op_name, enable_code_capture=False)  # type: ignore[arg-type]
+        def _replay_model(**kwargs):  # noqa: ANN001
+            """Return the captured output for the current dataset row (best-effort order)."""
+            # Simple counter-based mapping: Weave calls the model once per row in order.
+            if not hasattr(_replay_model, "_call_count"):
+                _replay_model._call_count = 0  # type: ignore[attr-defined]
+
+            idx = _replay_model._call_count  # type: ignore[attr-defined]
+            _replay_model._call_count += 1  # type: ignore[attr-defined]
+
+            if 0 <= idx < len(captured_outputs):
+                return captured_outputs[idx]
             return None
 
         # Run evaluation so <metric>.mean attributes materialise for Leaderboard
-        await evaluation.evaluate(model=_noop_model)
-
+        await evaluation.evaluate(model=_replay_model, __weave={"display_name": evaluation.name})
+        
         # Publish *after* evaluation so URI version includes results
         published_eval = weave.publish(evaluation, name=evaluation.name)
 

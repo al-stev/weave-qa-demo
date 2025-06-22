@@ -68,9 +68,9 @@ def part3_evaluation():
         }
     ]
     
-    # Publish standardized evaluation dataset
+    # Publish standardized evaluation dataset - create once and reuse for all evaluations
     eval_dataset = weave.Dataset(name="QA-demo-evaluation-dataset", rows=evaluation_dataset)
-    weave.publish(eval_dataset, name="QA-demo-evaluation-dataset")
+    published_dataset = weave.publish(eval_dataset, name="QA-demo-evaluation-dataset")
     print(f" Published evaluation dataset with {len(evaluation_dataset)} scenarios")
     
     # Create the same four scorers as Part 2 for consistent comparison
@@ -91,19 +91,19 @@ def part3_evaluation():
     for model_name, model in model_variants.items():
         print(f"\n   → Evaluating {model_name}...")
         
-        # Create evaluation with same four metrics as Part 2
+        # Create evaluation with same four metrics as Part 2 - use shared dataset
         evaluation = weave.Evaluation(
-            name=f"QA_Demo_{model_name}",
-            dataset=evaluation_dataset,
+            name=f"EVAL_{model_name}",
+            dataset=published_dataset,
             scorers=comprehensive_scorers
         )
         
         # Publish evaluation
-        published_eval = weave.publish(evaluation, name=f"QA_Demo_{model_name}")
+        published_eval = weave.publish(evaluation, name=f"EVAL_{model_name}")
         evaluation_objects.append(published_eval)
         
-        # Run evaluation
-        result = asyncio.run(evaluation.evaluate(model))
+        # Run evaluation with proper display name
+        result = asyncio.run(evaluation.evaluate(model, __weave={"display_name": f"EVAL_{model_name}"}))
         evaluation_results.append((model_name, result))
         
         print(f"     {model_name} evaluation complete")
