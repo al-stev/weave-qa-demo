@@ -1,6 +1,6 @@
 # Weave Evals Traces – QA Demo
 
-A comprehensive demonstration of Weave's evaluation capabilities through pharmaceutical quality assurance scenarios. This demo showcases prompt versioning, evaluation logging, and rigorous evaluation workflows.
+A demonstration of Weave's evaluation capabilities through quality assurance scenarios. This demo showcases prompt versioning, evaluation logging, and evaluation workflows.
 
 ## 🎯 Demo Objectives
 
@@ -83,15 +83,14 @@ Weave's versioning is driven by **template structure**, not runtime variables:
 - Multi-model evaluation loop across 4 model variants
 - Four scalar metrics: `regulatory_compliance`, `content_safety`, `semantic_similarity`, `llm_judge`
 - Uses `EvaluationLogger.log_summary()` for aggregation
-- Creates EL leaderboard with 4 columns (no latency metric)
+- Creates EL leaderboard with 4 columns (warning: experimental, not core weave functionality)
 
 ### Part 3 – Evaluations  
 **Learning Objective**: "Rigorous evaluations of AI applications"
 
 - Formal `weave.Evaluation` workflow for systematic comparison
 - Same four metrics as Part 2 for apples-to-apples comparison
-- Standard leaderboard mirrors Part 2 structure
-- Enables comparison between EvaluationLogger and Evaluation approaches
+- Creates leaderboard for high level analysis
 
 ## 🏗️ Architecture
 
